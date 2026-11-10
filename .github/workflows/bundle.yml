@@ -20,7 +20,7 @@ jobs:
         run: zip -r -X windows-xp.zip com.system76.CosmicThemeBundle.windows-xp.metainfo.xml config data LICENSE NOTICE.md LICENSES
 
       - name: Build the Firefox theme
-        run: (cd firefox && zip -X ../windows-xp-firefox.xpi manifest.json frame.png)
+        run: (cd firefox && zip -X ../windows-xp-firefox.xpi manifest.json)
 
       # One release per x-cosmic-version in the metainfo. Pushes without a version bump
       # replace the zip on the existing release, so releases/latest always has master.
