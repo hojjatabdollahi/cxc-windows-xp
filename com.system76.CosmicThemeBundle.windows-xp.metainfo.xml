@@ -11,7 +11,7 @@
   <icon type="stock">preferences-other-symbolic</icon>
   <custom>
     <value key="x-cosmic-format">1</value>
-    <value key="x-cosmic-version">1.0.0</value>
+    <value key="x-cosmic-version">1.1.0</value>
     <value key="x-cosmic-slug">windows-xp</value>
     <value key="x-cosmic-mode">light</value>
     <value key="x-cosmic-parts">Theme,Builder,Background</value>
