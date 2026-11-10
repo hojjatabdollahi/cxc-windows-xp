@@ -1,0 +1,11 @@
+# Third-party content
+
+Everything not listed here is © the repository authors, GPL-3.0-or-later (see `LICENSE`).
+
+| What | Where in the bundle | Origin | License |
+|---|---|---|---|
+| Icon theme base | `data/icons/…/{16x16,22x22,24x24,32x32,48x48,128x128}` | [B00merang-Artwork/Windows-XP](https://github.com/B00merang-Artwork/Windows-XP), commit 24e95ad | GPL-2.0, text in `LICENSES/B00merang-Windows-XP.GPL-2.0.txt`. Modified: symlinks resolved, `scalable/` removed, alias copies added. |
+| ~260 fill-in icons and the window-control glyphs | same, plus `scalable/actions/window-*-symbolic.svg` | [rozniak/xfce-winxp-tc](https://github.com/rozniak/xfce-winxp-tc), `icons/luna` | None stated. Reproduces Microsoft's Windows XP icons. |
+| 128px file-type icons, shortcut emblem, network and notification tray icons | `128x128/mimetypes`, `128x128/emblems`, `*/status` | [Windows XP High Resolution Icon Pack](https://www.deviantart.com/marchmountain/art/Windows-XP-High-Resolution-Icon-Pack-916042853) by Matt Pettit | None stated, free download. Redraws Microsoft's icon designs. |
+| Tahoma font | `data/fonts/…fonts.tahoma` | Microsoft, via xfce-winxp-tc `fonts/ttf` | Proprietary. |
+| Bliss wallpaper | `data/cosmic/windows-xp/wallpapers/bliss.jpg` | Charles O'Rear / Microsoft, via xfce-winxp-tc `wallpapers/common` | Proprietary. |
