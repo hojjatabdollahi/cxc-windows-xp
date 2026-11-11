@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Windows XP",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Windows XP for Firefox, matching the COSMIC bundle: beige window, white sidebar, blue accent. Colours the sidebar so vertical tabs stay readable.",
   "browser_specific_settings": { "gecko": { "id": "windows-xp@cxc.hojjatabdollahi" } },
   "theme": {

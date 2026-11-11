@@ -6,12 +6,7 @@ and import it in Settings → Desktop → Appearance.
 
 ## Firefox
 
-A matching Firefox theme that also colours the sidebar, so vertical tabs stay readable:
+A matching Firefox theme that also colours the sidebar, so vertical tabs stay readable.
+Install it from its listing: https://addons.mozilla.org/firefox/addon/windows-xp-cosmic/
 
-```
-firefox https://github.com/hojjatabdollahi/cxc-windows-xp/releases/latest/download/windows-xp-firefox.xpi
-```
-
-The XPI is unsigned. It installs on builds that do not enforce add-on signing, such as the
-Pop!_OS package; Mozilla's own release builds will refuse it until it is signed through AMO.
-Source is in `firefox/`.
+Each release also carries the AMO-signed `windows-xp-firefox.xpi`. Source is in `firefox/`.

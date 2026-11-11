@@ -19,17 +19,37 @@ jobs:
       - name: Zip the bundle
         run: zip -r -X windows-xp.zip com.system76.CosmicThemeBundle.windows-xp.metainfo.xml config data LICENSE NOTICE.md LICENSES
 
-      - name: Build the Firefox theme
-        run: (cd firefox && zip -X ../windows-xp-firefox.xpi manifest.json)
+      # Submit the Firefox theme to its AMO listing when its version is new, wait for the
+      # automatic review, then fetch the signed XPI that AMO serves for that version.
+      - name: Sign the Firefox theme through AMO
+        continue-on-error: true
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
+          WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
+        run: |
+          api=https://addons.mozilla.org/api/v5/addons/addon/windows-xp@cxc.hojjatabdollahi/
+          v=$(jq -r .version firefox/manifest.json)
+          live=$(curl -sf "$api" | jq -r .current_version.version)
+          if [ "$v" != "$live" ]; then
+            npx --yes web-ext sign --source-dir firefox --channel listed --approval-timeout 900000
+          fi
+          live=$(curl -sf "$api" | jq -r .current_version.version)
+          if [ "$live" = "$v" ]; then
+            curl -sfL "$(curl -sf "$api" | jq -r .current_version.file.url)" -o windows-xp-firefox.xpi
+            echo "attached AMO-signed $v"
+          else
+            echo "AMO's public version is $live, not $v yet; no XPI attached this run"
+          fi
 
       # One release per x-cosmic-version in the metainfo. Pushes without a version bump
-      # replace the zip on the existing release, so releases/latest always has master.
+      # replace the assets on the existing release, so releases/latest always has master.
       - name: Publish release
         run: |
           tag="v$(grep -oP '(?<=key="x-cosmic-version">)[^<]+' com.system76.CosmicThemeBundle.windows-xp.metainfo.xml)"
+          assets="windows-xp.zip"; [ -f windows-xp-firefox.xpi ] && assets="$assets windows-xp-firefox.xpi"
           if gh release view "$tag" >/dev/null 2>&1; then
-            gh release upload "$tag" windows-xp.zip windows-xp-firefox.xpi --clobber
+            gh release upload "$tag" $assets --clobber
           else
-            gh release create "$tag" windows-xp.zip windows-xp-firefox.xpi --title "Windows XP $tag" \
+            gh release create "$tag" $assets --title "Windows XP $tag" \
               --notes "COSMIC theme bundle. Import windows-xp.zip from Settings → Desktop → Appearance."
           fi
