@@ -16,8 +16,6 @@ jobs:
       AMO: https://addons.mozilla.org/api/v5/addons/addon/windows-xp@cxc.hojjatabdollahi/
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-tags: true
 
       # The importer wants the metainfo file, config/ and data/ at the zip root, with no symlinks.
       - name: Zip the bundle
@@ -33,7 +31,7 @@ jobs:
           WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
         run: |
           v=$(jq -r .version firefox/manifest.json)
-          if git rev-parse -q --verify "refs/tags/firefox-v$v" >/dev/null; then
+          if git ls-remote --exit-code --tags origin "refs/tags/firefox-v$v" >/dev/null; then
             echo "Firefox theme $v was already submitted; bump the version in firefox/manifest.json to send a new one"
             exit 0
           fi
