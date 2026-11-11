@@ -3,6 +3,7 @@ name: bundle
 on:
   push:
     branches: [master]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -12,33 +13,47 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
+      AMO: https://addons.mozilla.org/api/v5/addons/addon/windows-xp@cxc.hojjatabdollahi/
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-tags: true
 
       # The importer wants the metainfo file, config/ and data/ at the zip root, with no symlinks.
       - name: Zip the bundle
         run: zip -r -X windows-xp.zip com.system76.CosmicThemeBundle.windows-xp.metainfo.xml config data LICENSE NOTICE.md LICENSES
 
-      # Submit the Firefox theme to its AMO listing when its version is new, wait for the
-      # automatic review, then fetch the signed XPI that AMO serves for that version.
-      - name: Sign the Firefox theme through AMO
+      # Send the Firefox theme to its AMO listing once per version. The tag firefox-v<version>
+      # records a submission, so an unchanged theme or one still in review is not sent again.
+      # Nothing in here can block the bundle release.
+      - name: Submit the Firefox theme to AMO
         continue-on-error: true
         env:
           WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
           WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
         run: |
-          api=https://addons.mozilla.org/api/v5/addons/addon/windows-xp@cxc.hojjatabdollahi/
           v=$(jq -r .version firefox/manifest.json)
-          live=$(curl -sf "$api" | jq -r .current_version.version)
-          if [ "$v" != "$live" ]; then
-            npx --yes web-ext sign --source-dir firefox --channel listed --approval-timeout 900000
+          if git rev-parse -q --verify "refs/tags/firefox-v$v" >/dev/null; then
+            echo "Firefox theme $v was already submitted; bump the version in firefox/manifest.json to send a new one"
+            exit 0
           fi
-          live=$(curl -sf "$api" | jq -r .current_version.version)
-          if [ "$live" = "$v" ]; then
-            curl -sfL "$(curl -sf "$api" | jq -r .current_version.file.url)" -o windows-xp-firefox.xpi
-            echo "attached AMO-signed $v"
+          npx --yes web-ext sign --source-dir firefox --channel listed --approval-timeout 600000 2>&1 | tee sign.log || true
+          if grep -q 'Waiting for approval' sign.log; then
+            git tag "firefox-v$v" && git push origin "firefox-v$v"
           else
-            echo "AMO's public version is $live, not $v yet; no XPI attached this run"
+            echo "AMO did not accept the upload; see above"; exit 1
+          fi
+
+      # Attach the AMO-signed XPI once the listing's public version is the one in the manifest.
+      - name: Fetch the signed XPI from AMO
+        continue-on-error: true
+        run: |
+          v=$(jq -r .version firefox/manifest.json)
+          live=$(curl -sf "$AMO" | jq -r .current_version.version)
+          if [ "$live" = "$v" ]; then
+            curl -sfL "$(curl -sf "$AMO" | jq -r .current_version.file.url)" -o windows-xp-firefox.xpi && echo "attached AMO-signed $v"
+          else
+            echo "AMO's public version is $live, manifest is $v; nothing to attach yet"
           fi
 
       # One release per x-cosmic-version in the metainfo. Pushes without a version bump
