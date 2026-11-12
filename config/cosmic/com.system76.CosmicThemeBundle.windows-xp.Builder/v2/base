@@ -89,6 +89,7 @@
         extremely_high_2: 0.6,
     ),
     icon_theme: "com.system76.CosmicThemeBundle.windows-xp.icons",
+    cursor_theme: Some("com.system76.CosmicThemeBundle.windows-xp.icons"),
     font: (
         family: "Tahoma",
         weight: Normal,
