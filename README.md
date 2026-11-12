@@ -1,6 +1,7 @@
 # Windows XP for COSMIC
 
-A COSMIC theme bundle: Luna Blue colours, Tahoma, Bliss and an XP icon theme.
+A COSMIC theme bundle: Luna Blue colours, Tahoma, Bliss, an XP icon theme and the XP cursors,
+sharp at 1x from the original bitmaps and at 2x/3x from vector redraws.
 Grab `windows-xp.zip` from the [latest release](https://github.com/hojjatabdollahi/cxc-windows-xp/releases/latest)
 and import it in Settings → Desktop → Appearance.
 
