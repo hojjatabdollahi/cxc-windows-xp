@@ -27,12 +27,17 @@ xf["fleur"] = xf["move"]   # upstream maps fleur to the plain arrow; it is the f
 for line in (modern / "cursorList").read_text().splitlines():
     parts = line.split()
     if len(parts) == 2 and parts[1] == "dnd-move": xf.setdefault(parts[0], xf["dnd-move"])
+# XP has no grab hands: xfce maps grab to the pointing hand and grabbing to the arrow; use the vector open hand alone
+for n in ("grab", "grabbing", "closedhand", "openhand"): xf.pop(n, None)
 
 # modernXP: X name -> base; base -> {size: (hx, hy)}
 md_base = {p.stem: p.stem for p in (modern / "config").glob("*.cursor")}
 for line in (modern / "cursorList").read_text().splitlines():
     parts = line.split()
-    if len(parts) == 2 and parts[1] in md_base: md_base.setdefault(parts[0], parts[1])
+    if len(parts) != 2: continue
+    a, b = parts
+    if b in md_base and a not in md_base: md_base.setdefault(a, b)
+    elif a in md_base and b not in md_base: md_base.setdefault(b, a)   # upstream wrote the line backwards
 md_hot = {}   # base -> {size: (hx, hy)}, hotspots scaled from the smallest size upstream provides
 for p in (modern / "config").glob("*.cursor"):
     given = {int(s): (int(x), int(y)) for s, x, y in (l.split()[:3] for l in p.read_text().splitlines() if l.strip())}
@@ -58,6 +63,7 @@ for xname in sorted(set(xf) | set(md_base)):
     # upstream drew col-resize as the vertical arrow and row-resize as the horizontal one; freedesktop means the opposite
     base = {"col-resize": "row-resize", "row-resize": "col-resize", "dnd-move": None}.get(base, base)   # dnd-move.svg is a bare arrow; the XP bitmap has the drag box, keep that alone
     if xname == "move": base = "fleur"   # upstream aliases move to dnd-move; the four-way art is fleur
+    if xname in ("grab", "grabbing", "closedhand"): base = "openhand"   # the only hand upstream draws
     if base and not (modern / "svg" / f"{base}.svg").exists():   # a few upstream configs have no artwork of their own
         alt = {"left_ptr": "default", "watch": "wait", "left": "left-arrow"}.get(base, base.replace("_", "-"))
         if (modern / "svg" / f"{alt}.svg").exists():
@@ -71,6 +77,13 @@ for xname in sorted(set(xf) | set(md_base)):
         hx, hy = md_hot[base][32]
         (d / "metadata.json").write_text(json.dumps([{"filename": f"{base}.svg", "hotspot_x": hx, "hotspot_y": hy, "nominal_size": 32}], indent=4) + "\n")
     if not frames: continue   # nothing from either source
+    have = {f[0] for f in frames}
+    if not have & set(MODERN_SIZES[1:]):   # bitmap-only: scale the largest bitmap, nearest-neighbour, so sizes stay consistent
+        size, hx, hy, png = max(frames)
+        for target in (48, 64, 96):
+            out_png = tmp / f'{xname}-up{target}.png'
+            subprocess.run(['convert', png, '-scale', f'{target}x{target}!', out_png], check=True)
+            frames.append((target, round(hx * target / size), round(hy * target / size), out_png))
     cfg = tmp / f"{xname}.cfg"
     cfg.write_text("".join(f"{s} {x} {y} {p}\n" for s, x, y, p in sorted(frames)))
     subprocess.run(["xcursorgen", cfg, cur / xname], check=True)
