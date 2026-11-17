@@ -22,6 +22,11 @@ for line in (xfce / "mappings").read_text().splitlines():
     xname, src = (s.strip() for s in line.split("-->"))
     size, hx, hy, png = (xfce / "cfg" / f"{src}.cfg").read_text().split()[:4]
     xf[xname] = (xfce / "res" / png, int(size), int(hx), int(hy))
+xf["fleur"] = xf["move"]   # upstream maps fleur to the plain arrow; it is the four-way move cursor
+# names that only exist as aliases of the vector dnd-move get the XP drag-arrow bitmap instead
+for line in (modern / "cursorList").read_text().splitlines():
+    parts = line.split()
+    if len(parts) == 2 and parts[1] == "dnd-move": xf.setdefault(parts[0], xf["dnd-move"])
 
 # modernXP: X name -> base; base -> {size: (hx, hy)}
 md_base = {p.stem: p.stem for p in (modern / "config").glob("*.cursor")}
@@ -51,10 +56,12 @@ for xname in sorted(set(xf) | set(md_base)):
         png, size, hx, hy = xf[xname]; frames.append((size, hx, hy, png))
     base = md_base.get(xname)
     # upstream drew col-resize as the vertical arrow and row-resize as the horizontal one; freedesktop means the opposite
-    base = {"col-resize": "row-resize", "row-resize": "col-resize"}.get(base, base)
+    base = {"col-resize": "row-resize", "row-resize": "col-resize", "dnd-move": None}.get(base, base)   # dnd-move.svg is a bare arrow; the XP bitmap has the drag box, keep that alone
+    if xname == "move": base = "fleur"   # upstream aliases move to dnd-move; the four-way art is fleur
     if base and not (modern / "svg" / f"{base}.svg").exists():   # a few upstream configs have no artwork of their own
         alt = {"left_ptr": "default", "watch": "wait", "left": "left-arrow"}.get(base, base.replace("_", "-"))
-        if (modern / "svg" / f"{alt}.svg").exists(): md_hot[alt] = md_hot[base]; base = alt
+        if (modern / "svg" / f"{alt}.svg").exists():
+            md_hot.setdefault(alt, md_hot[base]); base = alt   # art-only names reuse the config hotspots; real bases keep their own
         else: base = None
     if base:
         for size in MODERN_SIZES:
