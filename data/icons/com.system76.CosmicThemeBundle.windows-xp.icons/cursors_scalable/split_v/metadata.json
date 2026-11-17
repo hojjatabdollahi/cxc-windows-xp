@@ -1,8 +1,8 @@
 [
     {
-        "filename": "row-resize.svg",
+        "filename": "col-resize.svg",
         "hotspot_x": 12,
-        "hotspot_y": 12,
+        "hotspot_y": 14,
         "nominal_size": 32
     }
 ]

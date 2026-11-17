@@ -50,6 +50,8 @@ for xname in sorted(set(xf) | set(md_base)):
     if xname in xf:
         png, size, hx, hy = xf[xname]; frames.append((size, hx, hy, png))
     base = md_base.get(xname)
+    # upstream drew col-resize as the vertical arrow and row-resize as the horizontal one; freedesktop means the opposite
+    base = {"col-resize": "row-resize", "row-resize": "col-resize"}.get(base, base)
     if base and not (modern / "svg" / f"{base}.svg").exists():   # a few upstream configs have no artwork of their own
         alt = {"left_ptr": "default", "watch": "wait", "left": "left-arrow"}.get(base, base.replace("_", "-"))
         if (modern / "svg" / f"{alt}.svg").exists(): md_hot[alt] = md_hot[base]; base = alt
